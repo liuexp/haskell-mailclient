@@ -18,6 +18,12 @@ Planned Feature (by preference)
 * POP3 + SSL
 * try with a GUI wrap-up
 
+Reference
+----------------
+[https://wiki.archlinux.org/index.php/Courier_Email_Server]
+[http://sherlock.heroku.com/blog/2012/02/03/setting-up-postfix-to-use-gmail-as-an-smtp-relay-host-in-archlinux/]
+[https://wiki.archlinux.org/index.php/Postfix]
+
 Zzzz
 -----
 TBA
