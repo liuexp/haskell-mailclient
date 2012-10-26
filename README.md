@@ -8,6 +8,7 @@ Basic setup (for Archlinux)
 * postfix
 * courier-imap (courier-mta not recommended because it's too powerful \& complicated)
 * haskell-network (for compilation)
+* hsemail (for compilation)
 
 Planned Feature (by preference)
 ------------

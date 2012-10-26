@@ -1,4 +1,4 @@
-module Main where
+module Smtp where
 import Text.ParserCombinators.Parsec.Rfc2821 (
         SmtpReply(..),
         SmtpCode(..),
@@ -12,18 +12,14 @@ import Text.ParserCombinators.Parsec.Rfc2822 (
         Field(..),
         NameAddr(..)
     )
-import System.Time
-    ( CalendarTime(..)
-    , getClockTime
-    , toCalendarTime
-    )
 import Data.IORef (newIORef, readIORef)
 import Network.Socket
 import Control.Exception	(bracketOnError,finally)
 import System.IO
 import Control.Monad		(forM_)
-import System.Environment
 
+simpleMakeMessage title content from to ct=
+		Message [From [NameAddr (Just from) from], To [NameAddr (Just to) to], Subject title, Date ct] content
 
 angleAddr :: String -> ShowS
 angleAddr addr = (addr ++)
@@ -73,14 +69,3 @@ sendSMTP log heloDomain smtpAddr message =
   			)`finally` hClose h
 		)
 
---- Here's a simple test that the above function does work.
-{--
-simpleMakeMessage title content from to ct=
-		Message [From [NameAddr (Just from) from], To [NameAddr (Just to) to], Subject title, Date ct] content
-
-main = do
-	 ct <- toCalendarTime =<< getClockTime
-	 let msg = simpleMakeMessage "hello" "test" "liuexp" "testmail" ct in
-		 sendMail (hPutStrLn stderr) "liuexp" "59.78.44.239" "25" msg
-
---}
