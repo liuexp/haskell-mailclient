@@ -24,7 +24,7 @@ main = do
 		putStrLn "---- Here's the list result -----"
 		putStrLn msg
 		putStrLn "---- Here's the retr debug -----"
-		msg2 <- retrMail 19 (hPutStrLn stderr) (head addr) user pass 
+		msg2 <- retrMail 25 (hPutStrLn stderr) (head addr) user pass 
 		putStrLn "---- Here's the retr result -----"
 		putStrLn msg2
 		putStrLn "---- Here's the smtp debug -----"
