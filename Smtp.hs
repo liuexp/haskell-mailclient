@@ -17,12 +17,41 @@ import Network.Socket
 import Control.Exception	(bracketOnError,finally)
 import System.IO
 import Control.Monad		(forM_)
+import Data.List		(intercalate)
+import System.Time
+import System.Locale
 
 simpleMakeMessage title content from to ct=
 		Message [From [NameAddr (Just from) from], To [NameAddr (Just to) to], Subject title, Date ct] content
 
+combineMessages = intercalate "\r\n"
+
+formatName xx@(NameAddr mName addr)=(case mName of
+						Just y -> show y
+						Nothing -> ""
+						) ++ angleAddr addr ""
+formatNameList x =intercalate ",\n\t" $ map formatName x
+formatFields (Sender x) = "From: " ++ formatName x
+formatFields (From x) = "From: " ++ formatNameList x
+formatFields (Subject x) = "Subject: " ++ x
+formatFields (To x) = "To: " ++ formatNameList x
+formatFields (Bcc x) = "Bcc: " ++ formatNameList x
+formatFields (Cc x) = "Cc: " ++ formatNameList x
+formatFields (Date x) = "Date: " ++ formatCalendarTime defaultTimeLocale "%a, %d %b %Y %H:%M:%S " x ++ ctTZName x
+formatFields _ = ""
+
+formatMessage :: Message -> String
+formatMessage message@(Message fields body) = combineMessages $ escapeDot (fFields ++ [""] ++ fBody) where
+							fBody = map (reverse . dropWhile (=='\r') . reverse ) $ lines body
+	    						fFields = concatMap (lines. formatFields) fields
+							escapeDot = map (\x -> case x of
+										"." -> ". "
+										otherwise-> x) 
+
+
+
 angleAddr :: String -> ShowS
-angleAddr addr = (addr ++)
+angleAddr addr = (("<"++addr++">") ++)
 
 sendMail :: (String -> IO()) -> String -> String -> String -> Message -> IO()
 sendMail log heloDomain smtpHost smtpPort message =
@@ -59,9 +88,10 @@ sendSMTP log heloDomain smtpAddr message =
 
 			    forM_ [ "EHLO " ++ heloDomain 
 	   			,"MAIL FROM: " ++ angleAddr (head froms) "" 
-				,"RCPT TO: " ++ angleAddr (head tos) "" 
+				-- FIXME: any better way to do this?
+				, combineMessages ["RCPT TO: " ++ to | to <- tos]
 				, "DATA"
-				-- TODO: format message
+				, formatMessage message
 				, "."
 				, "QUIT"]
 				$ \ line -> hPutStr h line >> hPutStr h "\r\n" >>log line>>log "\r\n"
