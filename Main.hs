@@ -23,7 +23,7 @@ main = do
 			putStrLn "---- Here's the list result -----"
 			putStrLn msg
 			putStrLn "---- Here's the retr debug -----"
-			msg <- retrMail (hPutStrLn stderr) (head addr) user pass 19
+			msg <- retrMail (hPutStrLn stderr) (head addr) user pass 21
 			putStrLn "---- Here's the retr result -----"
 			putStrLn msg
 {--

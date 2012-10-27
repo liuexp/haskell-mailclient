@@ -26,6 +26,8 @@ http://sherlock.heroku.com/blog/2012/02/03/setting-up-postfix-to-use-gmail-as-an
 
 https://wiki.archlinux.org/index.php/Postfix
 
+[Real World Haskell](http://book.realworldhaskell.org/)
+
 Zzzz
 -----
 TBA
