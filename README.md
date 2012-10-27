@@ -1,7 +1,7 @@
 haskell-mailclient
 ==================
 
-simple haskell mail client for Computer Networking homework
+simple haskell mail client written from scratch for Computer Networking homework
 
 Basic setup (for Archlinux)
 -------------
@@ -14,9 +14,9 @@ Planned Feature (by preference)
 ------------
 * SMTP client
 * POP3 client
+* try with a GUI wrap-up
 * SMTP + SSL
 * POP3 + SSL
-* try with a GUI wrap-up
 
 Reference
 ----------------
@@ -29,3 +29,4 @@ https://wiki.archlinux.org/index.php/Postfix
 Zzzz
 -----
 TBA
+
