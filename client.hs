@@ -70,18 +70,19 @@ main = do
 							case cmd of
 		      						(Send {from=from, to=to, subject=subject, message=message}) -> do
 									ct <- toCalendarTime =<< getClockTime
+									addr <- getAddrInfo Nothing (Just smtpHost) (Just smtpPort)
 									let msg = simpleMakeMessage subject message from to ct
-		    							sendMail logger to smtpHost smtpPort msg
+		    							sendMail logger smtpHost (head addr) msg
 									return ""
 								(List {num=num}) -> do
 									addr <- getAddrInfo Nothing (Just popHost) (Just popPort)
 									msg <- if null num then listMail logger (head addr) popUser popPass
-				   						 else listMail' logger (head addr) popUser popPass (read num :: Int)
+				   						 else listMail' (read num :: Int) logger (head addr) popUser popPass 
 									putStrLn msg
 									return msg
 								(Retr {num=num}) -> do
 									addr <- getAddrInfo Nothing (Just popHost) (Just popPort)
-									msg <- retrMail logger (head addr) popUser popPass (read num :: Int)
+									msg <- retrMail (read num :: Int) logger (head addr) popUser popPass 
 									putStrLn msg
 									return msg
 								_ -> error "something wrong with CLI parsing"

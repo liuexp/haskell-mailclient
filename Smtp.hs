@@ -5,14 +5,10 @@ import Control.Exception	(bracketOnError,finally)
 import System.IO
 import Control.Monad		(forM_)
 import Format
-
 simpleMakeMessage title content from to ct=
 		Message [From [NameAddr (Just from) from], To [NameAddr (Just to) to], Subject title, Date ct] content
 
-sendMail :: (String -> IO()) -> String -> String -> String -> Message -> IO()
-sendMail logger heloDomain smtpHost smtpPort message =
-		getAddrInfo Nothing (Just smtpHost) (Just smtpPort) >>=
-		(\smtpAddr -> sendSMTP logger heloDomain (head smtpAddr) message) 
+sendMail = sendSMTP
 
 sendSMTP :: (String -> IO()) -> String -> AddrInfo -> Message -> IO()
 sendSMTP logger heloDomain smtpAddr message = 

@@ -14,23 +14,22 @@ import Network.Socket
 user = "testmail"
 pass = "testmail"
 host = "liuexp"
-port = "110"
+popPort = "110"
+smtpPort = "25"
 
 main = do
-			addr <- getAddrInfo Nothing (Just host) (Just port) 
-			putStrLn "---- Here's the list debug -----"
-			msg <- listMail (hPutStrLn stderr) (head addr) user pass
-			putStrLn "---- Here's the list result -----"
-			putStrLn msg
-			putStrLn "---- Here's the retr debug -----"
-			msg <- retrMail (hPutStrLn stderr) (head addr) user pass 21
-			putStrLn "---- Here's the retr result -----"
-			putStrLn msg
-{--
-main = do
-	 ct <- toCalendarTime =<< getClockTime
-	 let msg = simpleMakeMessage "hello" "test" "liuexp" "testmail" ct in
-		 --sendMail (hPutStrLn stderr) "liuexp" "59.78.44.239" "25" msg
-		 sendMail (hPutStrLn stderr) "liuexp" "127.0.0.1" "25" msg
+		addr <- getAddrInfo Nothing (Just host) (Just popPort) 
+		putStrLn "---- Here's the list debug -----"
+		msg <- listMail (hPutStrLn stderr) (head addr) user pass
+		putStrLn "---- Here's the list result -----"
+		putStrLn msg
+		putStrLn "---- Here's the retr debug -----"
+		msg2 <- retrMail 25 (hPutStrLn stderr) (head addr) user pass 
+		putStrLn "---- Here's the retr result -----"
+		putStrLn msg2
+		putStrLn "---- Here's the smtp debug -----"
+	 	ct <- toCalendarTime =<< getClockTime
+		addr2 <- getAddrInfo Nothing (Just host) (Just smtpPort) 
+		let msg = simpleMakeMessage "hello" "test" "liuexp" "testmail" ct in
+			sendMail (hPutStrLn stderr) host (head addr2) msg
 
---}

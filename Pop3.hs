@@ -1,12 +1,12 @@
 module Pop3 where
 import Network.Socket
-import Control.Exception	(bracketOnError)
+import Control.Exception	(bracketOnError,finally)
 import System.IO
 import Data.List		(intercalate, isPrefixOf, isSuffixOf)
 import Data.Char		(isSpace, isControl)
 import Data.Maybe
 
-genAuthCommands u p = ["USER "++u, "PASS "++p]
+genAuth u p = ["USER "++u, "PASS "++p]
 genList = ["LIST"]
 genList' id = ["LIST " ++ show id]
 genRetr id= ["RETR "++ show id]
@@ -42,39 +42,33 @@ isMultipleLine x
 			ub = unpackC b
 		
 
-checkReply :: (String -> IO()) -> String -> IO (Bool, String)
-checkReply log contents 
-	| isPrefixOf "+OK" $head strippedMsg = log logMsg >> return (True, logMsg)
-	| otherwise = log logMsg >> return (False, logMsg)
+checkReply contents 
+	| isPrefixOf "+OK" $head strippedMsg =  (True, logMsg)
+	| otherwise = (False, logMsg)
 	where strippedMsg = filter (not . null) $ map stripSpace $ lines contents
        	      logMsg = intercalate "\r\n" strippedMsg
 
-listMail log popAddr user pass = 
-		let cmdList = genAuthCommands user pass ++ genList  ++ genQuit in
-			talk log cmdList popAddr genList
-
-listMail' log popAddr user pass id = 
-		let cmdList = genAuthCommands user pass ++ genList' id  ++ genQuit in
-			talk log cmdList popAddr (genList' id)
-
-retrMail log popAddr user pass id =
-		let cmdList = genAuthCommands user pass ++ genRetr id ++ genQuit in
-			talk log cmdList popAddr $genRetr id
-
-talk log cmdList popAddr msgCmd= bracketOnError (socket (addrFamily popAddr) Stream defaultProtocol)
+listMail = talk genList
+listMail' id = talk (genList' id)
+retrMail id = talk (genRetr id)
+talk cmdList log popAddr user pass = bracketOnError (socket (addrFamily popAddr) Stream defaultProtocol)
 				sClose
 				(\sock -> do
     					connect sock (addrAddress popAddr)
 					socketToHandle sock ReadWriteMode
-				) >>= ( \ h -> do 
+				) >>= ( \ h -> (do 
 	  				--hSetBuffering h LineBuffering 
 					getReply h False
 	  				msg <- mapM (\cmd ->
-	  					hPutStr h cmd >>hPutStr h "\r\n" >> hFlush h>>log cmd >> log "\r\n" >>getReply h (isMultipleLine cmd) >>= checkReply log >>= (\(res, msg)->
-										if res then return (cmd, msg) else fail $ "talking failed in " ++ cmd ++ "\n" ++ msg
-										)) 
-						cmdList -- >>=
-					--msgRest <- hGetLine h
-					hClose h
-					return . fromMaybe "" . lookup (head msgCmd) $msg
-					) 
+	  					hPutStr h (cmd++"\r\n") >>
+						hFlush h >>
+						log (cmd++"\r\n") >> 
+						getReply h (isMultipleLine cmd) >>= 
+						return . checkReply >>= 
+						(\(res, msg)->
+								if res then return (cmd, msg) else fail $ "talking failed in " ++ cmd ++ "\n" ++ msg
+						 )) 
+						(genAuth user pass ++ cmdList ++ genQuit) 
+					return . fromMaybe "" . lookup (head cmdList) $msg
+					) `finally` hClose h
+				)
