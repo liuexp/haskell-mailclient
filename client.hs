@@ -50,46 +50,40 @@ main = do
   args <- getArgs
   if "--help" `elem` args || "-?" `elem` args || null args
     then putStrLn clientHelpContents
-    else cmdArgs (modes [defaultSend, defaultList, defaultRetr]) >>=
-    		(\cmd -> case cmd of
-      (Send {from=from, to=to, subject=subject, message=message}) -> do
-	      ct <- toCalendarTime =<< getClockTime
-	      rv <- runErrorT $
-	      		do
-				cf <- join $ liftIO $ readfile emptyCP "config.ini"
-				host <- get cf "smtp" "host"
-				port <- get cf "smtp" "port"
-				let msg = simpleMakeMessage subject message from to ct
-				liftIO $ sendMail (hPutStrLn stderr) to host port msg
-				return "done"
-	      putStrLn $ formatEither rv
-      (List _) -> do 
-		     rv <- runErrorT $
-		      do
-			      cf <- join $ liftIO $ readfile emptyCP "config.ini"
-			      host <- get cf "pop" "host"
-			      port <- get cf "pop" "port"
-			      user <- get cf "pop" "user"
-			      pass <- get cf "pop" "pass"
-			      addr <- liftIO $ getAddrInfo Nothing (Just host) (Just port)
-			      msg <- liftIO $ listMail (hPutStrLn stderr) (head addr) user pass
-			      liftIO $ putStrLn msg
-			      return msg
-		     putStrLn $ formatEither  rv
-		
-
-      (Retr {num=num}) -> do 
-			     rv <- runErrorT $
-			     	do
-					cf <- join $ liftIO $ readfile emptyCP "config.ini"
-					host <- get cf "pop" "host"
-					port <- get cf "pop" "port"
-					user <- get cf "pop" "user"
-					pass <- get cf "pop" "pass"
-					addr <- liftIO $ getAddrInfo Nothing (Just host) (Just port) 
-					msg <- liftIO $ retrMail (hPutStrLn stderr) (head addr) user pass (read num ::Int)
-					liftIO $ putStrLn msg
-					return msg
-			     putStrLn $ formatEither rv
+    else cmdArgs (modes [defaultSend, defaultList, defaultRetr]) >>= 
+    		(\cmd -> do 
+      			 rv <- runErrorT $
+			 		do
+						cf <- join $ liftIO $ readfile emptyCP "config.ini"
+						smtpHost <- get cf "smtp" "host"
+						smtpPort <- get cf "smtp" "port"
+						popHost <- get cf "pop" "host"
+						popPort <- get cf "pop" "port"
+						popUser <- get cf "pop" "user"
+						popPass <- get cf "pop" "pass"
+						hLogfile <- liftIO $ openFile "client.log" AppendMode
+						let logger = hPutStrLn hLogfile
+	  					liftIO $ logger "----- New log segment start-------"
+						case cmd of
+	      						(Send {from=from, to=to, subject=subject, message=message}) -> do
+								ct <- liftIO $ toCalendarTime =<< getClockTime
+								let msg = simpleMakeMessage subject message from to ct
+	    							liftIO $ sendMail logger to smtpHost smtpPort msg
+								return ""
+							(List {num=num}) -> do
+								addr <- liftIO $ getAddrInfo Nothing (Just popHost) (Just popPort)
+								msg <- if null num then liftIO $ listMail logger (head addr) popUser popPass
+			   						 else liftIO $ listMail' logger (head addr) popUser popPass (read num :: Int)
+								liftIO $ putStrLn msg
+								return msg
+							(Retr {num=num}) -> do
+								addr <- liftIO $ getAddrInfo Nothing (Just popHost) (Just popPort)
+								msg <- liftIO $ retrMail logger (head addr) popUser popPass (read num :: Int)
+								liftIO $ putStrLn msg
+								return msg
+							_ -> error "something wrong with CLI parsing"
+						liftIO $ hFlush hLogfile
+						liftIO $ hClose hLogfile
+      			 hPutStrLn stderr $ formatEither rv
       )
 

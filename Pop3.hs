@@ -11,7 +11,7 @@ import Data.Maybe
 
 genAuthCommands u p = ["USER "++u, "PASS "++p]
 genList = ["LIST"]
-genList' id = ["LIST" ++ show id]
+genList' id = ["LIST " ++ show id]
 genRetr id= ["RETR "++ show id]
 genQuit = ["QUIT"]
 
@@ -35,11 +35,15 @@ getReply h doMultipleLine = do
 
 isMultipleLine:: String -> Bool
 isMultipleLine x
-	|unpackC [x] == unpackC genList = True
-	|unpackC [x] == unpackC (genRetr 0) = True
+	| equiv [x] genList	= True
+	| equiv [x] (genRetr 0)	= True
 	|otherwise = False
 	where
-		unpackC = head . words . head 
+		unpackC = words . head 
+		equiv a b = length ua == length ub && head ua == head ub where
+			ua = unpackC a
+			ub = unpackC b
+		
 
 checkReply :: (String -> IO()) -> String -> IO (Bool, String)
 checkReply log contents 
@@ -54,7 +58,7 @@ listMail log popAddr user pass =
 
 listMail' log popAddr user pass id = 
 		let cmdList = genAuthCommands user pass ++ genList' id  ++ genQuit in
-			talk log cmdList popAddr genList
+			talk log cmdList popAddr (genList' id)
 
 retrMail log popAddr user pass id =
 		let cmdList = genAuthCommands user pass ++ genRetr id ++ genQuit in
@@ -70,7 +74,7 @@ talk log cmdList popAddr msgCmd= bracketOnError (socket (addrFamily popAddr) Str
 					getReply h False
 	  				msg <- mapM (\cmd ->
 	  					hPutStr h cmd >>hPutStr h "\r\n" >> hFlush h>>log cmd >> log "\r\n" >>getReply h (isMultipleLine cmd) >>= checkReply log >>= (\(res, msg)->
-										if res then return (cmd, msg) else fail $ "talking failed in " ++ cmd
+										if res then return (cmd, msg) else fail $ "talking failed in " ++ cmd ++ "\n" ++ msg
 										)) 
 						cmdList -- >>=
 					--msgRest <- hGetLine h
