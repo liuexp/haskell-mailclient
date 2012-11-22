@@ -1,12 +1,9 @@
 module Pop3 where
-
 import Network.Socket
-import Control.Exception	(bracketOnError,finally)
+import Control.Exception	(bracketOnError)
 import System.IO
-import Control.Monad
 import Data.List		(intercalate, isPrefixOf, isSuffixOf)
 import Data.Char		(isSpace, isControl)
-import Control.Applicative
 import Data.Maybe
 
 genAuthCommands u p = ["USER "++u, "PASS "++p]

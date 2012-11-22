@@ -12,6 +12,7 @@ import Smtp
 import Pop3
 import Network.Socket(getAddrInfo)
 import Control.Monad.Error
+import Control.Exception	(finally)
 import Data.ConfigFile
 import Format
 import System.IO
@@ -54,36 +55,37 @@ main = do
     		(\cmd -> do 
       			 rv <- runErrorT $
 			 		do
-						cf <- join $ liftIO $ readfile emptyCP "config.ini"
-						smtpHost <- get cf "smtp" "host"
-						smtpPort <- get cf "smtp" "port"
-						popHost <- get cf "pop" "host"
-						popPort <- get cf "pop" "port"
-						popUser <- get cf "pop" "user"
-						popPass <- get cf "pop" "pass"
-						hLogfile <- liftIO $ openFile "client.log" AppendMode
-						let logger = hPutStrLn hLogfile
-	  					liftIO $ logger "----- New log segment start-------"
-						case cmd of
-	      						(Send {from=from, to=to, subject=subject, message=message}) -> do
-								ct <- liftIO $ toCalendarTime =<< getClockTime
-								let msg = simpleMakeMessage subject message from to ct
-	    							liftIO $ sendMail logger to smtpHost smtpPort msg
-								return ""
-							(List {num=num}) -> do
-								addr <- liftIO $ getAddrInfo Nothing (Just popHost) (Just popPort)
-								msg <- if null num then liftIO $ listMail logger (head addr) popUser popPass
-			   						 else liftIO $ listMail' logger (head addr) popUser popPass (read num :: Int)
-								liftIO $ putStrLn msg
-								return msg
-							(Retr {num=num}) -> do
-								addr <- liftIO $ getAddrInfo Nothing (Just popHost) (Just popPort)
-								msg <- liftIO $ retrMail logger (head addr) popUser popPass (read num :: Int)
-								liftIO $ putStrLn msg
-								return msg
-							_ -> error "something wrong with CLI parsing"
-						liftIO $ hFlush hLogfile
-						liftIO $ hClose hLogfile
+					cf <- join $ liftIO $ readfile emptyCP "config.ini"
+					smtpHost <- get cf "smtp" "host"
+					smtpPort <- get cf "smtp" "port"
+					popHost <- get cf "pop" "host"
+					popPort <- get cf "pop" "port"
+					popUser <- get cf "pop" "user"
+					popPass <- get cf "pop" "pass"
+					logFile <- get cf "log" "logfile"
+					hLogfile <- liftIO $ openFile logFile AppendMode
+					liftIO $ (do
+							let logger = hPutStrLn hLogfile
+		  					logger "----- New log segment start-------"
+							case cmd of
+		      						(Send {from=from, to=to, subject=subject, message=message}) -> do
+									ct <- toCalendarTime =<< getClockTime
+									let msg = simpleMakeMessage subject message from to ct
+		    							sendMail logger to smtpHost smtpPort msg
+									return ""
+								(List {num=num}) -> do
+									addr <- getAddrInfo Nothing (Just popHost) (Just popPort)
+									msg <- if null num then listMail logger (head addr) popUser popPass
+				   						 else listMail' logger (head addr) popUser popPass (read num :: Int)
+									putStrLn msg
+									return msg
+								(Retr {num=num}) -> do
+									addr <- getAddrInfo Nothing (Just popHost) (Just popPort)
+									msg <- retrMail logger (head addr) popUser popPass (read num :: Int)
+									putStrLn msg
+									return msg
+								_ -> error "something wrong with CLI parsing"
+						) `finally`(hFlush hLogfile >> hClose hLogfile)
       			 hPutStrLn stderr $ formatEither rv
       )
 
