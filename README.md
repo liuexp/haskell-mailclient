@@ -14,14 +14,25 @@ Basic setup (for Archlinux)
         
 Configuration
 ----------
-* see config.ini for an example
+* Here is a minimal example
+    [smtp]
+    host = 127.0.0.1
+    port = 25
+    [pop]
+    user = testmail
+    pass = testmail
+    host = 127.0.0.1
+    port = 110
+    [log]
+    logfile = client.log
 
 Components
 -----------
-* Smtp.hs       : naive smtp library *from scratch*
-* Pop3.hs       : naive pop3 library *from scratch*
+* Smtp.hs       : naive smtp library *from scratch*.
+* Pop3.hs       : naive pop3 library *from scratch*.
+* Format.hs     : various formatting utilities.
 * client.hs     : naive client with CLI interface wrap-up for SMTP/POP3 library.
-* config.ini    : config file
+* config.ini    : config file.
 
 Demo run
 ------------
