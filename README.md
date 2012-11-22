@@ -1,7 +1,7 @@
 haskell-mailclient
 ==================
 
-simple haskell mail client written *from scratch* for Computer Networking homework
+simple haskell mail client written **from scratch** for Computer Networking homework
 
 Basic setup (for Archlinux)
 -------------
@@ -15,6 +15,7 @@ Basic setup (for Archlinux)
 Configuration
 ----------
 * Here is a minimal example
+
     [smtp]
     host = 127.0.0.1
     port = 25
@@ -28,8 +29,8 @@ Configuration
 
 Components
 -----------
-* Smtp.hs       : naive smtp library *from scratch*.
-* Pop3.hs       : naive pop3 library *from scratch*.
+* Smtp.hs       : naive smtp library **from scratch**.
+* Pop3.hs       : naive pop3 library **from scratch**.
 * Format.hs     : various formatting utilities.
 * client.hs     : naive client with CLI interface wrap-up for SMTP/POP3 library.
 * config.ini    : config file.
