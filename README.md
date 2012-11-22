@@ -9,14 +9,8 @@ Basic setup (for Archlinux)
 * courier-imap (courier-mta not recommended because it's too powerful \& complicated)
 * haskell-network (for compilation)
 * hsemail (for compilation)
-
-Planned Feature (by preference)
-------------
-* SMTP client
-* POP3 client
-* try with a GUI wrap-up
-* SMTP + SSL
-* POP3 + SSL
+* ConfigFile (for compilation of client)
+* ParseHelp (for compilation of client)
 
 Reference
 ----------------
