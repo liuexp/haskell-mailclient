@@ -11,6 +11,11 @@ Basic setup (for Archlinux)
 * hsemail (for compilation)
 * ConfigFile (for compilation of client)
 * ParseHelp (for compilation of client)
+        
+Configuration
+----------
+* see config.ini for an example
+
 
 Reference
 ----------------
