@@ -11,6 +11,7 @@ import Data.Maybe
 
 genAuthCommands u p = ["USER "++u, "PASS "++p]
 genList = ["LIST"]
+genList' id = ["LIST" ++ show id]
 genRetr id= ["RETR "++ show id]
 genQuit = ["QUIT"]
 
@@ -50,6 +51,11 @@ checkReply log contents
 listMail log popAddr user pass = 
 		let cmdList = genAuthCommands user pass ++ genList  ++ genQuit in
 			talk log cmdList popAddr genList
+
+listMail' log popAddr user pass id = 
+		let cmdList = genAuthCommands user pass ++ genList' id  ++ genQuit in
+			talk log cmdList popAddr genList
+
 retrMail log popAddr user pass id =
 		let cmdList = genAuthCommands user pass ++ genRetr id ++ genQuit in
 			talk log cmdList popAddr $genRetr id
