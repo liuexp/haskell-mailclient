@@ -1,7 +1,7 @@
 haskell-mailclient
 ==================
 
-simple haskell mail client written from scratch for Computer Networking homework
+simple haskell mail client written *from scratch* for Computer Networking homework
 
 Basic setup (for Archlinux)
 -------------
@@ -10,11 +10,18 @@ Basic setup (for Archlinux)
 * haskell-network (for compilation)
 * hsemail (for compilation)
 * ConfigFile (for compilation of client)
-* ParseHelp (for compilation of client)
+* ParseHelp (for compilation of client, generating the usage contents and parsing the CLI arguments)
         
 Configuration
 ----------
 * see config.ini for an example
+
+Components
+-----------
+* Smtp.hs       : naive smtp library *from scratch*
+* Pop3.hs       : naive pop3 library *from scratch*
+* client.hs     : naive client with CLI interface wrap-up for SMTP/POP3 library.
+* config.ini    : config file
 
 Demo run
 ------------
